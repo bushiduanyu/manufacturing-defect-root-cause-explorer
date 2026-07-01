@@ -233,6 +233,7 @@ def render_overview(data: pd.DataFrame, validation: dict, analysis_outputs: dict
         st.plotly_chart(
             defect_status_distribution_chart(analysis_outputs["balance"]),
             width="stretch",
+            key="overview_defect_status_distribution",
         )
 
     with profile_col:
@@ -309,9 +310,15 @@ def render_root_cause_explorer(data: pd.DataFrame) -> tuple[pd.DataFrame, str]:
         st.plotly_chart(
             selected_feature_boxplot_by_status(data, selected_feature),
             width="stretch",
+            key=f"root_cause_boxplot_{selected_feature}",
         )
     with right:
-        st.plotly_chart(defect_rate_histogram_by_status(filtered_data), width="stretch")
+        status_key = "all" if selected_status is None else str(selected_status)
+        st.plotly_chart(
+            defect_rate_histogram_by_status(filtered_data),
+            width="stretch",
+            key=f"root_cause_defect_rate_histogram_{status_key}",
+        )
 
     st.markdown(
         '<div class="small-note">The boxplot preserves the low-vs-high defect comparison; the histogram reflects the current operating slice from the sidebar.</div>',
@@ -333,6 +340,7 @@ def render_feature_difference_analysis(data: pd.DataFrame, analysis_outputs: dic
         st.plotly_chart(
             standardized_difference_bar_chart(analysis_outputs["top_differences"]),
             width="stretch",
+            key="driver_separation_standardized_differences",
         )
     with table_col:
         st.markdown("### Ranked Process Separators")
@@ -349,6 +357,7 @@ def render_feature_difference_analysis(data: pd.DataFrame, analysis_outputs: dic
     st.plotly_chart(
         selected_feature_boxplot_by_status(data, box_feature),
         width="stretch",
+        key=f"feature_difference_boxplot_{box_feature}",
     )
 
     st.markdown("### Operating Summary by Defect Status")
@@ -406,6 +415,7 @@ def render_correlation_explorer(data: pd.DataFrame, analysis_outputs: dict) -> N
     st.plotly_chart(
         correlation_heatmap(analysis_outputs["correlation"]),
         width="stretch",
+        key="correlation_explorer_heatmap",
     )
 
     corr = analysis_outputs["correlation"]
@@ -445,7 +455,11 @@ def render_model_insights(model_outputs: dict) -> None:
 
     chart_col, table_col = st.columns([1.15, 1])
     with chart_col:
-        st.plotly_chart(model_metrics_bar_chart(model_results), width="stretch")
+        st.plotly_chart(
+            model_metrics_bar_chart(model_results),
+            width="stretch",
+            key="model_insights_metrics",
+        )
     with table_col:
         st.markdown("### Classifier Benchmark")
         st.dataframe(metrics_display, width="stretch", hide_index=True)
@@ -459,12 +473,14 @@ def render_model_insights(model_outputs: dict) -> None:
         st.plotly_chart(
             confusion_matrix_heatmap(model_outputs["confusion_matrix"]),
             width="stretch",
+            key="model_insights_confusion_matrix",
         )
     with importance_col:
         st.markdown("### Top 5 Model Drivers")
         st.plotly_chart(
             feature_importance_chart(model_outputs["importance"], limit=5),
             width="stretch",
+            key="model_insights_feature_importance",
         )
 
     top_features = ", ".join(model_outputs["importance"].head(3)["Feature"])
